@@ -1,0 +1,108 @@
+<nav>
+  <mat-icon aria-hidden="false" aria-label="home icon" [inline]="false" id="logo">local_library</mat-icon>
+  <ul class="menu-bar">
+    <li class="search">
+      <form (ngSubmit)="search()">
+        <mat-form-field appearance="fill" id="search" color="primary" >
+          <mat-label i18n>Search Google Books</mat-label>
+          <input type="text"
+                 placeholder="Type here" i18n-placeholder
+                 aria-label="search" i18n-aria-label
+                 matInput
+                 #trigger="matAutocompleteTrigger"
+                 (keydown.enter)="trigger.closePanel()"
+                 (blur)="trigger.closePanel()"
+                 [formControl]="searchFormControl"
+                 [matAutocomplete]="auto">
+          <mat-icon matSuffix>search</mat-icon>
+          <mat-autocomplete #auto="matAutocomplete">
+            <mat-option *ngFor="let option of $searchSuggestions | async" [value]="option">
+              {{option}}
+            </mat-option>
+          </mat-autocomplete>
+        </mat-form-field>
+      </form>
+    </li>
+    <li>
+      <button mat-button i18n>Products</button>
+    </li>
+    <li>
+      <button mat-button [matMenuTriggerFor]="menu" i18n>Company</button>
+      <mat-menu #menu="matMenu">
+        <button mat-menu-item i18n>About</button>
+        <button mat-menu-item i18n>Contact Us</button>
+      </mat-menu>
+    </li>
+    <li>
+      <button mat-button>
+        <mat-icon aria-hidden="false" aria-label="account icon" [inline]="false" id="account">face</mat-icon>
+      </button>
+    </li>
+  </ul>
+</nav>
+<main>
+<!--  <section *ngIf="!apiKey" class="api-key-missing">-->
+<!--    <mat-card class="mat-background-warn">-->
+<!--      <mat-card-title i18n>GOOGLE API KEY MISSING</mat-card-title>-->
+<!--      <mat-card-content class="mat-warn">-->
+<!--        <mat-icon>warning</mat-icon>-->
+<!--        <p>To protect my Google API key, I have not checked it in with the project.  It is required to query the Google Books API.-->
+<!--        If you were the intended recipients of the project, you have been emailed my Google API key to run the project.-->
+<!--          Otherwise, you may use your own.</p>-->
+<!--        <p>Please place the API key in <code>environment.ts</code> or <code>environment.prod.ts</code> according to your build type.</p>-->
+<!--      </mat-card-content>-->
+<!--    </mat-card>-->
+<!--  </section>-->
+  <section *ngIf="!$searchResult" id="no-search">
+    <h1 i18n >Hi! Type in the search bar above to begin.</h1>
+  </section>
+<mat-sidenav-container [hidden]="!$searchResult">
+  <mat-sidenav mode="side" [disableClose]="true" opened *ngIf="!!$searchResult">
+    <mat-accordion>
+      <mat-expansion-panel>
+        <mat-expansion-panel-header>Filters</mat-expansion-panel-header>
+        <ng-template matExpansionPanelContent>
+          <ul>
+            <li>No filters yet.</li>
+          </ul>
+        </ng-template>
+      </mat-expansion-panel>
+    </mat-accordion>
+  </mat-sidenav>
+  <mat-sidenav mode="side" position="end" [disableClose]="true" opened *ngIf="!!$searchResult" id="ads">
+    <img src="http://placekitten.com/g/300/300">
+    <p i18n>Ads here.</p>
+  </mat-sidenav>
+  <mat-sidenav-content>
+    <h1 id="results-title" i18n>Results for '{{searchTerms}}'</h1>
+    <mat-toolbar id="results-toolbar">
+      <mat-form-field appearance="outline">
+        <mat-label>Order By</mat-label>
+        <mat-select [(ngModel)]="resultOrder" (ngModelChange)="onSortOrderChange()">
+          <mat-option [value]="OrderBy.Newest" i18n>Newest</mat-option>
+          <mat-option [value]="OrderBy.Relevance" i18n>Relevance</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </mat-toolbar>
+  <mat-card *ngFor="let item of ($searchResult | async)?.items; let i=index">
+    <mat-card-header>
+      <mat-card-title>{{item.volumeInfo.title}}</mat-card-title>
+      <mat-card-subtitle>{{item.volumeInfo.authors | join }}</mat-card-subtitle>
+      <mat-card-subtitle>{{item.volumeInfo.publishedDate | date : 'YYYY' }}</mat-card-subtitle>
+      <img mat-card-avatar [src]="item.volumeInfo?.imageLinks?.thumbnail">
+    </mat-card-header>
+    <mat-card-content>
+      <div [innerHTML]="item.searchInfo?.textSnippet"></div>
+    </mat-card-content>
+    <mat-card-actions align="end">
+      <mat-button-toggle><mat-icon>bookmark</mat-icon></mat-button-toggle>
+      <button mat-button i18n>ADD TO CART</button>
+    </mat-card-actions>
+  </mat-card>
+  <mat-paginator [pageSize]="20" [pageSizeOptions]="[10,20,40]" [length]="($searchResult|async)?.totalItems" (page)="getResults()" #paginator></mat-paginator>
+  </mat-sidenav-content>
+</mat-sidenav-container>
+</main>
+<footer>
+  <span i18n>Joel Cairney &copy; 2021</span>
+</footer>
